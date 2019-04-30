@@ -14,8 +14,8 @@ void RawModeOn(){
 struct termios terminal;
 tcgetattr(0,&terminal);
 terminal_backup=terminal;
-terminal.c_lflag&=~(ICANON);
-//terminal.c_cc[VMIN]=1;
+//terminal.c_iflag&=~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+terminal.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 tcsetattr(0,TCSANOW,&terminal);
 raw_mode=1;
 return;
