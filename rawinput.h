@@ -1,9 +1,11 @@
 #ifndef RAWIN_H
 #define RAWIN_H
+#include<stdio.h>
 #include<termios.h>
 
 static struct termios	terminal_backup;
 int raw_mode=0;
+
 void RawModeOff(){
 tcsetattr(0,TCSANOW,&terminal_backup);
 raw_mode=0;
@@ -15,6 +17,7 @@ struct termios terminal;
 tcgetattr(0,&terminal);
 terminal_backup=terminal;
 //terminal.c_iflag&=~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+terminal.c_cc[VSTOP]=0;
 terminal.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 tcsetattr(0,TCSANOW,&terminal);
 raw_mode=1;
