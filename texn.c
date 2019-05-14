@@ -14,7 +14,10 @@
 #define DEL_KEY 127
 #define ARROW_UP 65
 #define ARROW_DOWN 66
+#define ARROW_RIGHT 67
+#define ARROW_LEFT 68
 
+#define CURSOR '|'
 
 typedef struct {
 int linenum;
@@ -33,6 +36,7 @@ return txt;
 }
 
 typedef struct{
+texndata txt;
 int x;
 int y;
 int width;
@@ -43,6 +47,7 @@ int y_offset;
 
 editordata emptyED(int width,int height){
 editordata ed;
+ed.txt=emptyTD();
 ed.x=0;
 ed.y=0;
 ed.width=width;
@@ -51,23 +56,38 @@ ed.x_offset=0;
 ed.y_offset=0;
 return ed;
 }
+
+void update(editordata *ed){
+for (int y=0;y<ed->height;y++)
+for(int x=0;x<ed->width;x++)
+CGR_setChar(x,y,(ed->txt).data[MAP_P(x,y)]);
+return;
+}
+
 void moveCursor(char direction,editordata *ed){
 switch(direction){
 case 'u':
-//	CGR_setChar(0,ed->y,' ');
+	CGR_setChar(ed->x,ed->y,(ed->txt).data[MAP_P(ed->x,ed->y)]);
 	if(ed->y>0)
 	(ed->y)--;
 	//CGR_setChar(0,*y,'*');
 break;
 case 'd':
 //	CGR_setChar(0,ed->y,' ');
+	CGR_setChar(ed->x,ed->y,(ed->txt).data[MAP_P(ed->x,ed->y)]);
 	if((ed->y)<(ed->height)-1)
 	(ed->y)++;
 	//CGR_setChar(0,*y,'*');
 break;
 case 'r':
+	CGR_setChar(ed->x,ed->y,(ed->txt).data[MAP_P(ed->x,ed->y)]);
+        if((ed->x)<(ed->txt).linesize[ed->y])
+        (ed->x)--;
 break;
 case 'l':
+	CGR_setChar(ed->x,ed->y,(ed->txt).data[MAP_P(ed->x,ed->y)]);
+        if(ed->x>0)
+        (ed->x)--;
 break;
 
 default:
@@ -99,6 +119,7 @@ return sum;
 
 int main(int argc,char ** argv){
 CGR_init(WIDTH,HEIGHT);
+CGR_setChar(0,0,CURSOR);
 CGR_draw();
 FILE *fp;
 if(argc>=2)
@@ -108,8 +129,9 @@ fp=fopen("output.txt","w");
 const int wid=CGR_getWidth();
 const int hei=CGR_getHeight();
 int p=0;
-texndata txt=emptyTD();
 editordata ed=emptyED(wid,hei);
+texndata txt=ed.txt;
+//main loop
 while (1){
 	char input=rawinput();
 
@@ -133,8 +155,11 @@ while (1){
 	if (input==DEL_KEY){
 		if(ed.x>0){
 		p--;
-		CGR_setChar(ed.x,ed.y,' ');
-		ed.x--;
+		moveCursor('l',&ed);
+		for (int i=ed.x;i<ed.txt.linesize[ed.y];i++)
+			ed.txt.data[MAP_P(i,ed.y)]=ed.txt.data[MAP_P(i+1,ed.y)];
+		ed.txt.data[MAP_P(ed.txt.linesize[ed.y]-1,ed.y)]='\0';
+		ed.txt.linesize[ed.y]--;
 		}
 	}
 
@@ -152,6 +177,18 @@ char ctlkey=rawinput();
 		moveCursor('d',&ed);
 		}
 	}
+	if(ctlkey==ARROW_RIGHT){
+		if(ed.x<(ed.txt).linesize[ed.y]){
+			//ed.x++;
+			moveCursor('r',&ed);
+		}
+	}
+	if(ctlkey==ARROW_LEFT){
+		if(ed.x>0){
+			//ed.x--;
+			moveCursor('l',&ed);
+		}
+	}
 }
 	if(input>=0x20&&input<=0x7E){
 	CGR_setChar(ed.x,ed.y,input);
@@ -159,7 +196,7 @@ char ctlkey=rawinput();
 	ed.x++;
 	txt.linesize[ed.y]++;
 	}
-	CGR_setChar(ed.x,ed.y,'|');
+	CGR_setChar(ed.x,ed.y,CURSOR);
 	CGR_draw();
 }
 
