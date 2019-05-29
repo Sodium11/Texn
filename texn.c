@@ -27,7 +27,7 @@ char data[DATA_SIZE];
 
 texndata emptyTD(){
 texndata txt;
-txt.linenum=0;
+txt.linenum=1;
 for(int i=0;i<LINE;i++)
 txt.linesize[i]=0;
 for(int i=0;i<DATA_SIZE;i++)
@@ -171,8 +171,8 @@ fp=fopen(argv[1],"r");
 	CGR_setChar(j,i,ed.txt.data[MAP_P(j,i)]);
 */
 	CGR_draw();
+	fclose(fp);
 	}
-fclose(fp);
 }
 int p=0;
 //texndata txt=ed.txt;
@@ -184,7 +184,11 @@ while (1){
 	break;
 
 	if(input==SAVE_KEY){
-	FILE *savefile=fopen("output.txt","w");
+	FILE *savefile;
+	if (argc<2)
+	savefile=fopen("output.txt","w");
+	else
+	savefile=fopen(argv[1],"w");
 	int f_size=texnsave(savefile,ed.txt);
 //	printf("%d",f_size);
 	fclose(savefile);
@@ -203,12 +207,13 @@ while (1){
 	if (input==DEL_KEY){
 		if(ed.x>0){
 		p--;
-		moveCursor('l',&ed);
+
 		for (int i=ed.x;i<ed.txt.linesize[ed.y];i++)
 			ed.txt.data[MAP_P(i,ed.y)]=ed.txt.data[MAP_P(i+1,ed.y)];
 		ed.txt.data[MAP_P((ed.txt.linesize[ed.y]-1),(ed.y))]='\0';
 		ed.txt.linesize[ed.y]--;
 		}
+		moveCursor('l',&ed);
 	}
 
 if(input==27)
