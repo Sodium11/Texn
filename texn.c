@@ -1,26 +1,20 @@
+//Sodium11.for.gitserver@gmail.com
 #include<stdio.h>
 #include"rawinput.h"
 #include"CGR.h"
 #include"texn.h"
-
-void dshift(editordata *ed,int start,int end,int n){
+/*
+void dshift(texndata *txt,int start,int end,int n){
 if(n>=0){
 for (int i=end;i<=start;i--)
-	ed->txt.data[i+n]=ed->txt.data[i];
+	txt->data[i+n]=txt->data[i];
 }else{
 for(int i=start;i>=end;i++)
-	ed->txt.data[i+n]=ed->txt.data[i];
+	txt->data[i+n]=txt->data[i];
 }
 return;
 }
-
-void update(editordata *ed){
-for (int y=0;y<ed->height;y++)
-for(int x=0;x<ed->width;x++)
-CGR_setChar(x,y,(ed->txt).data[MAP_P(x,(y+ed->y_offset))]);
-return;
-}
-
+*/
 int isAlpNum(char a){
 if(a>='A'&&a<='Z')
 return 1;
@@ -31,38 +25,8 @@ return 1;
 return 0;
 }
 
-int texnload(FILE *fp,texndata *txt){
-int x=0,y=0;
-char ch;
-while((ch=fgetc(fp))!=EOF) {
-	printf("%c",ch);
-	if(ch=='\n'||ch=='\r'){
-	x=0;
-	y++;
-	}else{
-	txt->data[MAP_P(x,y)]=ch;
-	txt->linesize[y]++;
-	x++;
-	}
-}
-txt->linenum=y;
-return 0;
-}
-
-int texnsave(FILE *fp,texndata txt){
-int sum=0;
-for(int i=0;i<txt.linenum;i++){
-//printf("%d,",txt.linesize[i]);
-sum+=txt.linesize[i];
-for(int j=0;j<txt.linesize[i];j++)
-fprintf(fp,"%c",txt.data[MAP_P(j,i)]);
-fprintf(fp,"\n");
-}
-return sum;
-}
-
 int main(int argc,char ** argv){
-CGR_init(WIDTH,HEIGHT);
+CGR_initF("setting.cgr");
 CGR_setChar(0,0,CURSOR);
 CGR_draw();
 
@@ -106,44 +70,35 @@ while (1){
 	}
 
 	if (input==DEL_KEY){
-		if(ed.x>0){
-			int Cpos=MAP_P(ed.x,ed.y);
-			dshift(&ed,Cpos,Cpos-ed.x+linelen(&ed,GlobalY(&ed)),1);
+		if(ed.x>=0){
+			for(int i=0;i<linelen(&ed,GlobalY(&ed))-GlobalX(&ed);i++)
+				ed.txt.data[GlobalP(&ed)+i-1]=ed.txt.data[GlobalP(&ed)+i];
+			ed.txt.linesize[GlobalY(&ed)]--;
+			ed.txt.data[MAP_P(linelen(&ed,GlobalY(&ed)),GlobalY(&ed))]='\0';
 			moveCursor('l',&ed);
-		}
+		}else
+		moveCursor('l',&ed);
 	}
 
 if(input==27)
 if(rawinput()==91){
 char ctlkey=rawinput();
-	if (ctlkey==ARROW_UP){
+	if(ctlkey==ARROW_UP)
 		moveCursor('u',&ed);
-	}
-	if(ctlkey==ARROW_DOWN){
-		if(ed.y<(ed.txt.linenum)){
-			if(ed.y>hei-1)
-			ed.y=hei-1;
+	if(ctlkey==ARROW_DOWN)
 		moveCursor('d',&ed);
-		}
-	}
-	if(ctlkey==ARROW_RIGHT){
-		if(ed.x<=(ed.txt).linesize[ed.y]){
-			//ed.x++;
-			moveCursor('r',&ed);
-		}
-	}
-	if(ctlkey==ARROW_LEFT){
-		if(ed.x>=0){
-			//ed.x--;
-			moveCursor('l',&ed);
-		}
-	}
+	if(ctlkey==ARROW_RIGHT)
+		moveCursor('r',&ed);
+	if(ctlkey==ARROW_LEFT)
+		moveCursor('l',&ed);
 }
 	if(input>=0x20&&input<=0x7E){
-	CGR_setChar(ed.x,ed.y,input);
-	ed.txt.data[MAP_P(ed.x,ed.y)]=input;
-	ed.txt.linesize[ed.y]++;
-	moveCursor('r',&ed);
+		CGR_setChar(ed.x,ed.y,input);
+		ed.txt.data[MAP_P(ed.x,ed.y)]=input;
+		ed.txt.linesize[ed.y]++;
+		for(int i=linelen(&ed,GlobalY(&ed))-GlobalX(&ed);i>ed.x;i--)
+			ed.txt.data[GlobalP(&ed)+i]=ed.txt.data[GlobalP(&ed)+i-1];
+		moveCursor('r',&ed);
 	}
 	update(&ed);
 	CGR_setChar(ed.x,ed.y,CURSOR);

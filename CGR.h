@@ -19,7 +19,23 @@ for(y=0;y<CGR_height;y++){
 }
 }
 
+
 void CGR_init(int width,int height){
+CGR_width=width;
+CGR_height=height;
+CGRScreen=(char *)malloc(CGR_width*CGR_height);
+if(CGRScreen==NULL){
+perror("CGRScreen definition error.");
+exit(0);
+}
+CGR_reset();
+}
+
+void CGR_initF(char* filename){
+int width,height;
+FILE *fp=fopen(filename,"r");
+fscanf(fp,"%d %d",&width,&height);
+fclose(fp);
 CGR_width=width;
 CGR_height=height;
 CGRScreen=(char *)malloc(CGR_width*CGR_height);
