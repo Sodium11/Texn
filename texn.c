@@ -1,32 +1,12 @@
 //Sodium11.for.gitserver@gmail.com
 #include<stdio.h>
-#include"rawinput.h"
-#include"CGR.h"
-#include"texn.h"
-/*
-void dshift(texndata *txt,int start,int end,int n){
-if(n>=0){
-for (int i=end;i<=start;i--)
-	txt->data[i+n]=txt->data[i];
-}else{
-for(int i=start;i>=end;i++)
-	txt->data[i+n]=txt->data[i];
-}
-return;
-}
-*/
-int isAlpNum(char a){
-if(a>='A'&&a<='Z')
-return 1;
-if(a>='a'&&a<='z')
-return 1;
-if(a>='0'&&a<='9')
-return 1;
-return 0;
-}
+#include<rawinput.h>
+#include<CGR.h>
+#include<texn.h>
 
 int main(int argc,char ** argv){
-CGR_initF("setting.cgr");
+CGR_init(WIDTH,HEIGHT);
+//CGR_initF("setting.cgr");
 CGR_setChar(0,0,CURSOR);
 CGR_draw();
 
@@ -38,11 +18,13 @@ FILE *fp;
 if(argc>=2){
 fp=fopen(argv[1],"r");
 	if(fp){
-	texnload(fp,&(ed.txt));
-	update(&ed);
-	CGR_draw();
-	fclose(fp);
+		if(texnload(fp,&(ed.txt))==-1){
+			return -1;
+		}
+		fclose(fp);
 	}
+update(&ed);
+CGR_draw();
 }
 int p=0;
 //main loop
@@ -63,21 +45,44 @@ while (1){
 	}
 	if(input==ENTER_KEY){
 		if(ed.y<hei){
-		ed.txt.linenum++;
+		insertline(&(ed.txt),GlobalY(&ed)+1);
+		for (int i=ed.x;i<linelen(&ed,GlobalY(&ed));i++){
+			ed.txt.data[MAP_P(i-ed.x,GlobalY(&ed)+1)]=ed.txt.data[MAP_P(i,GlobalY(&ed))];
+			ed.txt.data[MAP_P(i,GlobalY(&ed))]='\0';
+		}
+		int size=linelen(&ed,GlobalY(&ed));
+		ed.txt.linesize[GlobalY(&ed)]-=size-ed.x;
+		ed.txt.linesize[GlobalY(&ed)+1]+=size-ed.x;
+		ed.txt.data[MAP_P(ed.x,ed.y)]='\0';
 		moveCursor('d',&ed);
 		ed.x=0;
 		}
 	}
 
 	if (input==DEL_KEY){
-		if(ed.x>=0){
+		if(ed.x>0){
+		//delete in a line
 			for(int i=0;i<linelen(&ed,GlobalY(&ed))-GlobalX(&ed);i++)
 				ed.txt.data[GlobalP(&ed)+i-1]=ed.txt.data[GlobalP(&ed)+i];
 			ed.txt.linesize[GlobalY(&ed)]--;
 			ed.txt.data[MAP_P(linelen(&ed,GlobalY(&ed)),GlobalY(&ed))]='\0';
 			moveCursor('l',&ed);
-		}else
-		moveCursor('l',&ed);
+		}else if(GlobalY(&ed)>0){
+		//delete through lines
+			if(linelen(&ed,GlobalY(&ed))>=0){
+				int size=linelen(&ed,GlobalY(&ed));
+				int n=linelen(&ed,GlobalY(&ed)-1);
+				for (int i=0;i<size;i++){
+					ed.txt.data[MAP_P(i+n,GlobalY(&ed)-1)]=ed.txt.data[MAP_P(i,GlobalY(&ed))];
+					ed.txt.data[MAP_P(i,GlobalY(&ed))]='\0';
+				}
+				ed.txt.data[MAP_P(size+n,GlobalY(&ed)-1)]='\0';
+				ed.txt.linesize[GlobalY(&ed)-1]+=size;
+				delline(&(ed.txt),GlobalY(&ed));
+				moveCursor('u',&ed);
+				ed.x=n;
+			}
+		}
 	}
 
 if(input==27)
@@ -93,11 +98,7 @@ char ctlkey=rawinput();
 		moveCursor('l',&ed);
 }
 	if(input>=0x20&&input<=0x7E){
-		CGR_setChar(ed.x,ed.y,input);
-		ed.txt.data[MAP_P(ed.x,ed.y)]=input;
-		ed.txt.linesize[ed.y]++;
-		for(int i=linelen(&ed,GlobalY(&ed))-GlobalX(&ed);i>ed.x;i--)
-			ed.txt.data[GlobalP(&ed)+i]=ed.txt.data[GlobalP(&ed)+i-1];
+		insert(&(ed.txt),GlobalX(&ed),GlobalY(&ed),input);
 		moveCursor('r',&ed);
 	}
 	update(&ed);
