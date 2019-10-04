@@ -37,11 +37,13 @@ unsigned int TXTline=1;
 unsigned int TXTrow=1;
 char* TXTmap;
 if(argc==1){
-TXTline=30;
-TXTrow=30;
+TXTline=50;
+TXTrow=200;
 TXTmap=malloc(TXTrow*TXTline);
 for(int p=0;p<TXTrow*TXTline;p++)
 	TXTmap[p]='\0';
+
+
 }else if(argc==2){
 FILE *fp=fopen(argv[1],"r");
 if(!fp){
@@ -118,20 +120,30 @@ input=rawinput();
 if(DEBUG)printf("Control:%d",input);
 switch(input){
 case 65://up
-if(cy>0)cy--;
+if(cy>0){
+cy--;
+if(cy<vy)
+vy--;
+}
 break;
 
 case 66://down
-if(cy<S_height-1)
+if(cy<TXTrow-1){
+if(cy-vy<S_height-1)
 cy++;
 else
 vy++;
+}else{
+printf("HEIGHT OVER");
+}
 break;
 
 case 67://right
 	if (TXTmap[cx+cy*TXTline]=='\n'){
 		cx=0;
 		cy++;
+		if(cy>=vy+S_height)
+		vy++;
 	}else{
 	if(cx<S_width-1)cx++;
 	}
@@ -161,10 +173,11 @@ case 68://left
 	if(input==0xA){//Enter
 		TXTmap[cx+cy*TXTline]='\n';
 		cx=0;
-		if(cy<S_height-1)
+		if(cy<TXTrow-1)
 		cy++;
 		else
-		vy++;
+		printf("HEIGHT OVER");
+		if(cy>=vy+S_height)vy++;
 
 	}
 	if(input==0x7F){//delete
@@ -174,6 +187,7 @@ case 68://left
 		TXTmap[i+cy*TXTline]=TXTmap[(i+1)+cy*TXTline];
 		}else if(cy>0){
 			cy--;
+			if(cy<vy)vy--;
 			while(TXTmap[cx+cy*TXTline]!='\n')cx++;
 		}
 	}
