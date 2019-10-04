@@ -1,112 +1,189 @@
-//Sodium11.for.gitserver@gmail.com
 #include<stdio.h>
-#include<rawinput.h>
-#include<CGR.h>
-#include<texn.h>
+#include"lib/CGR.h"
+#include"lib/rawinput.h"
 
-int main(int argc,char ** argv){
-CGR_init(WIDTH,HEIGHT);
-//CGR_initF("setting.cgr");
-CGR_setChar(0,0,CURSOR);
-CGR_draw();
+#define DEBUG 1
 
-const int wid=CGR_getWidth();
-const int hei=CGR_getHeight();
-editordata ed=emptyED(wid,hei);
+const int S_width=30;
+const int S_height=10;
 
-FILE *fp;
-if(argc>=2){
-fp=fopen(argv[1],"r");
-	if(fp){
-		if(texnload(fp,&(ed.txt))==-1){
-			return -1;
-		}
-		fclose(fp);
-	}
-update(&ed);
-CGR_draw();
+int cx=0;
+int cy=0;
+int c='|';
+
+int vx=0;
+int vy=0;
+
+void update(int TXTline,int TXTrow,char *TXTmap,int x,int y){
+int w=CGR_getWidth();
+int h=CGR_getHeight();
+for(int i=0;i<w;i++)
+for(int j=0;j<h;j++)
+if(i<TXTline && j<TXTrow){
+char data=TXTmap[(i+x)+(j+y)*TXTline];
+if(data=='\n'||data=='\0')
+	CGR_setChar(i,j,' ');
+else
+	CGR_setChar(i,j,data);
 }
-int p=0;
-//main loop
-while (1){
-	char input=rawinput();
+return;
+}
 
-	if(input==EXIT_KEY)
+
+int main(int argc,char** argv){
+CGR_init(S_width,S_height);
+CGR_draw();
+unsigned int TXTline=1;
+unsigned int TXTrow=1;
+char* TXTmap;
+if(argc==1){
+TXTline=30;
+TXTrow=30;
+TXTmap=malloc(TXTrow*TXTline);
+for(int p=0;p<TXTrow*TXTline;p++)
+	TXTmap[p]='\0';
+}else if(argc==2){
+FILE *fp=fopen(argv[1],"r");
+if(!fp){
+printf("FILE ERROR");
+return -1;
+}
+char filechar;
+unsigned int linelen=0;
+char buffer[10000];
+int p=0;
+do{
+	filechar=getc(fp);
+	if(filechar==EOF)
 	break;
 
-	if(input==SAVE_KEY){
-	FILE *savefile;
-	if (argc<2)
-	savefile=fopen("output.txt","w");
+	buffer[p++]=filechar;
+	if(filechar=='\n'){
+	TXTline=(TXTline>linelen)?TXTline:linelen;
+	linelen=0;
+	TXTrow++;
+	}else{
+	linelen++;
+	}
+
+}while(filechar!=EOF);
+fclose(fp);
+
+if(DEBUG)printf("%d %d %s",TXTline,TXTrow,buffer);
+TXTmap=malloc(TXTrow*TXTline);
+for(int p=0;p<TXTrow*TXTline;p++)
+	TXTmap[p]='\0';
+p=0;
+int x=0;
+int y=0;
+while(buffer[p]!='\0'){
+TXTmap[x+y*TXTline]=buffer[p];
+if(buffer[p]=='\n'){
+x=0;
+y++;
+}else{
+x++;
+}
+p++;
+}
+}
+
+char input=' ';
+
+
+while(1){
+input=rawinput();
+if(input==19){//save file
+FILE* fp=fopen("test.txt","w");
+int p=0;
+while(p<TXTrow*TXTline){
+if(TXTmap[p]=='\0')
+	break;
+fprintf(fp,"%c",TXTmap[p]);
+if(TXTmap[p]=='\n')
+	p=((p/TXTline)+1)*TXTline;
+else
+	p++;
+}
+fclose(fp);
+printf("SAVED");
+}
+
+if(input==24)//exit ctrl+x
+	break;
+
+if(input==27){//Control
+input=rawinput();
+input=rawinput();
+if(DEBUG)printf("Control:%d",input);
+switch(input){
+case 65://up
+if(cy>0)cy--;
+break;
+
+case 66://down
+if(cy<S_height-1)
+cy++;
+else
+vy++;
+break;
+
+case 67://right
+	if (TXTmap[cx+cy*TXTline]=='\n'){
+		cx=0;
+		cy++;
+	}else{
+	if(cx<S_width-1)cx++;
+	}
+break;
+
+case 68://left
+	if(cx>0){
+	cx--;
+	}else{
+	if(cy>0){
+		cx=0;
+		cy--;
+		while(TXTmap[cx+cy*TXTline]!='\n')cx++;
+	}
+	}
+	break;
+}
+}else if(input>=0x20&&input<=0x7E){//normal input
+	TXTmap[cx+cy*TXTline]=input;
+	if(cx<TXTline-1)
+		cx++;
 	else
-	savefile=fopen(argv[1],"w");
-	int f_size=texnsave(savefile,ed.txt);
-	fclose(savefile);
-	}
-	if(input==ENTER_KEY){
-		if(ed.y<hei){
-		insertline(&(ed.txt),GlobalY(&ed)+1);
-		for (int i=ed.x;i<linelen(&ed,GlobalY(&ed));i++){
-			ed.txt.data[MAP_P(i-ed.x,GlobalY(&ed)+1)]=ed.txt.data[MAP_P(i,GlobalY(&ed))];
-			ed.txt.data[MAP_P(i,GlobalY(&ed))]='\0';
-		}
-		int size=linelen(&ed,GlobalY(&ed));
-		ed.txt.linesize[GlobalY(&ed)]-=size-ed.x;
-		ed.txt.linesize[GlobalY(&ed)+1]+=size-ed.x;
-		ed.txt.data[MAP_P(ed.x,ed.y)]='\0';
-		moveCursor('d',&ed);
-		ed.x=0;
-		}
-	}
+		printf("OVER");
+	if(DEBUG)printf("%d,%d",cx,cy);
+}else{
+	if(DEBUG)printf("function:%d",input);
+	if(input==0xA){//Enter
+		TXTmap[cx+cy*TXTline]='\n';
+		cx=0;
+		if(cy<S_height-1)
+		cy++;
+		else
+		vy++;
 
-	if (input==DEL_KEY){
-		if(ed.x>0){
-		//delete in a line
-			for(int i=0;i<linelen(&ed,GlobalY(&ed))-GlobalX(&ed);i++)
-				ed.txt.data[GlobalP(&ed)+i-1]=ed.txt.data[GlobalP(&ed)+i];
-			ed.txt.linesize[GlobalY(&ed)]--;
-			ed.txt.data[MAP_P(linelen(&ed,GlobalY(&ed)),GlobalY(&ed))]='\0';
-			moveCursor('l',&ed);
-		}else if(GlobalY(&ed)>0){
-		//delete through lines
-			if(linelen(&ed,GlobalY(&ed))>=0){
-				int size=linelen(&ed,GlobalY(&ed));
-				int n=linelen(&ed,GlobalY(&ed)-1);
-				for (int i=0;i<size;i++){
-					ed.txt.data[MAP_P(i+n,GlobalY(&ed)-1)]=ed.txt.data[MAP_P(i,GlobalY(&ed))];
-					ed.txt.data[MAP_P(i,GlobalY(&ed))]='\0';
-				}
-				ed.txt.data[MAP_P(size+n,GlobalY(&ed)-1)]='\0';
-				ed.txt.linesize[GlobalY(&ed)-1]+=size;
-				delline(&(ed.txt),GlobalY(&ed));
-				moveCursor('u',&ed);
-				ed.x=n;
-			}
+	}
+	if(input==0x7F){//delete
+		if(cx>0){
+		cx--;
+		for(int i=cx;i<TXTline-1;i++)
+		TXTmap[i+cy*TXTline]=TXTmap[(i+1)+cy*TXTline];
+		}else if(cy>0){
+			cy--;
+			while(TXTmap[cx+cy*TXTline]!='\n')cx++;
 		}
 	}
+}
+update(TXTline,TXTrow,TXTmap,vx,vy);
+CGR_setChar(cx-vx,cy-vy,c);
+CGR_draw();
+}
 
-if(input==27)
-if(rawinput()==91){
-char ctlkey=rawinput();
-	if(ctlkey==ARROW_UP)
-		moveCursor('u',&ed);
-	if(ctlkey==ARROW_DOWN)
-		moveCursor('d',&ed);
-	if(ctlkey==ARROW_RIGHT)
-		moveCursor('r',&ed);
-	if(ctlkey==ARROW_LEFT)
-		moveCursor('l',&ed);
-}
-	if(input>=0x20&&input<=0x7E){
-		insert(&(ed.txt),GlobalX(&ed),GlobalY(&ed),input);
-		moveCursor('r',&ed);
-	}
-	update(&ed);
-	CGR_setChar(ed.x,ed.y,CURSOR);
-	CGR_draw();
-}
 
 CGR_end();
-RawModeOff();
 return 0;
 }

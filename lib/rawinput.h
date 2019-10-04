@@ -30,6 +30,7 @@ if(raw_mode==0)
 RawModeOn();
 char ch=-1;
 scanf("%c",&ch);
+RawModeOff();
 return ch;
 }
 
