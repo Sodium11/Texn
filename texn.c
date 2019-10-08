@@ -2,10 +2,10 @@
 #include"lib/CGR.h"
 #include"lib/rawinput.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
-const int S_width=30;
-const int S_height=10;
+const int S_width=50;
+const int S_height=30;
 
 int cx=0;
 int cy=0;
@@ -36,15 +36,14 @@ CGR_draw();
 unsigned int TXTline=1;
 unsigned int TXTrow=1;
 char* TXTmap;
-if(argc==1){
-TXTline=50;
-TXTrow=200;
+if(argc==1){ //no file
+TXTline=100;
+TXTrow=2000;
 TXTmap=malloc(TXTrow*TXTline);
 for(int p=0;p<TXTrow*TXTline;p++)
 	TXTmap[p]='\0';
 
-
-}else if(argc==2){
+}else if(argc==2){ //open file
 FILE *fp=fopen(argv[1],"r");
 if(!fp){
 printf("FILE ERROR");
@@ -152,6 +151,7 @@ break;
 case 68://left
 	if(cx>0){
 	cx--;
+	if(cx<vx)vx--;
 	}else{
 	if(cy>0){
 		cx=0;
@@ -165,6 +165,8 @@ case 68://left
 	TXTmap[cx+cy*TXTline]=input;
 	if(cx<TXTline-1)
 		cx++;
+		if(cx>S_width-1)
+			vx++;
 	else
 		printf("OVER");
 	if(DEBUG)printf("%d,%d",cx,cy);
@@ -183,6 +185,7 @@ case 68://left
 	if(input==0x7F){//delete
 		if(cx>0){
 		cx--;
+		if(cx<vx)vx--;
 		for(int i=cx;i<TXTline-1;i++)
 		TXTmap[i+cy*TXTline]=TXTmap[(i+1)+cy*TXTline];
 		}else if(cy>0){
