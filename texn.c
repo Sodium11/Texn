@@ -29,6 +29,27 @@ else
 return;
 }
 
+void error_exit(int TXTline,int TXTrow,char *TXTmap,const char* str){
+printf("%s",str);
+FILE *backup=fopen("backup.txt","w");
+if(backup){
+int p=0;
+while(p<TXTrow*TXTline){
+if(TXTmap[p]=='\0')
+        break;
+fprintf(backup,"%c",TXTmap[p]);
+if(TXTmap[p]=='\n')
+        p=((p/TXTline)+1)*TXTline;
+else
+        p++;
+}
+fclose(backup);
+}
+printf("Data saved in backup.txt");
+exit(-1);
+return;
+}
+
 
 int main(int argc,char** argv){
 CGR_init(S_width,S_height);
@@ -37,11 +58,14 @@ unsigned int TXTline=1;
 unsigned int TXTrow=1;
 char* TXTmap;
 if(argc==1){ //no file
+printf("NEW FILE");
 TXTline=100;
 TXTrow=2000;
 TXTmap=malloc(TXTrow*TXTline);
 for(int p=0;p<TXTrow*TXTline;p++)
 	TXTmap[p]='\0';
+for(int p=0;p<TXTrow;p++)
+	TXTmap[p*TXTline]='\n';
 
 }else if(argc==2){ //open file
 FILE *fp=fopen(argv[1],"r");
@@ -156,19 +180,24 @@ case 68://left
 	if(cy>0){
 		cx=0;
 		cy--;
-		while(TXTmap[cx+cy*TXTline]!='\n')cx++;
+		if(cy<vy)vy--;
+		while(TXTmap[cx+cy*TXTline]!='\n'){
+		cx++;
+		if(cx>=S_width-1)error_exit(TXTline,TXTrow,TXTmap,"over");
+		}
 	}
 	}
 	break;
 }
 }else if(input>=0x20&&input<=0x7E){//normal input
 	TXTmap[cx+cy*TXTline]=input;
-	if(cx<TXTline-1)
+	if(cx<TXTline-1){
 		cx++;
 		if(cx>S_width-1)
 			vx++;
-	else
+	}else{
 		printf("OVER");
+	}
 	if(DEBUG)printf("%d,%d",cx,cy);
 }else{
 	if(DEBUG)printf("function:%d",input);
