@@ -30,7 +30,7 @@ return;
 }
 
 void error_exit(int TXTline,int TXTrow,char *TXTmap,const char* str){
-printf("%s",str);
+printf("%s\n",str);
 FILE *backup=fopen("backup.txt","w");
 if(backup){
 int p=0;
@@ -111,6 +111,9 @@ x++;
 }
 p++;
 }
+update(TXTline,TXTrow,TXTmap,vx,vy);
+CGR_setChar(cx-vx,cy-vy,c);
+CGR_draw();
 }
 
 char input=' ';
@@ -152,9 +155,12 @@ break;
 
 case 66://down
 if(cy<TXTrow-1){
-if(cy-vy<S_height-1)
+if(cy-vy<S_height-1){
 cy++;
-else
+if(TXTmap[cx+cy*TXTline]=='\0'){
+cx=0;
+}
+}else
 vy++;
 }else{
 printf("HEIGHT OVER");
@@ -190,6 +196,12 @@ case 68://left
 	break;
 }
 }else if(input>=0x20&&input<=0x7E){//normal input
+	int tmp=cx;
+	while(TXTmap[tmp+cy*TXTline]!='\0')tmp++;
+	while(tmp>cx){
+	TXTmap[tmp+cy*TXTline]=TXTmap[tmp+cy*TXTline-1];
+	tmp--;
+	}
 	TXTmap[cx+cy*TXTline]=input;
 	if(cx<TXTline-1){
 		cx++;
