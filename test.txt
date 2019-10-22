@@ -1,5 +1,1 @@
-#include<stdio.h>
-int main(){
-printf("Network is the best!");
-return 0;
-}
+Hello new world!

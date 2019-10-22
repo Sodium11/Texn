@@ -1,4 +1,3 @@
-//rawinput.h by Sodium11.for.gitserver@gmail.com
 #ifndef RAWIN_H
 #define RAWIN_H
 #include<stdio.h>
@@ -30,7 +29,6 @@ if(raw_mode==0)
 RawModeOn();
 char ch=-1;
 scanf("%c",&ch);
-RawModeOff();
 return ch;
 }
 
