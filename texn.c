@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include"lib/CGR.h"
 #include"lib/rawinput.h"
-
+#define VERSION "v0.2"
 #define DEBUG 0
 
 const int S_width=50;
@@ -52,6 +52,7 @@ return;
 
 
 int main(int argc,char** argv){
+printf("Texn %s\n",VERSION);
 CGR_init(S_width,S_height);
 CGR_draw();
 unsigned int TXTline=1;
@@ -64,8 +65,6 @@ TXTrow=2000;
 TXTmap=malloc(TXTrow*TXTline);
 for(int p=0;p<TXTrow*TXTline;p++)
 	TXTmap[p]='\0';
-for(int p=0;p<TXTrow;p++)
-	TXTmap[p*TXTline]='\n';
 
 }else if(argc==2){ //open file
 FILE *fp=fopen(argv[1],"r");
