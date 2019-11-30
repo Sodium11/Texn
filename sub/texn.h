@@ -1,3 +1,4 @@
+//texn.h by Sodium11.for.gitserver@gmail.com
 #ifndef TEXN_H
 #define TEXN_H
 
@@ -5,7 +6,7 @@
 #define HEIGHT 38
 #define MAP_P(x,y) ((x)+(y)*CGR_getWidth())
 #define DATA_SIZE 1000000
-#define LINE 100
+#define LINE 1000
 
 #define EXIT_KEY 24
 #define SAVE_KEY 19
@@ -84,15 +85,21 @@ int texnload(FILE *fp,texndata *txt){
 int x=0,y=0;
 char ch;
 while((ch=fgetc(fp))!=EOF) {
-        printf("%c",ch);
-        if(ch=='\n'||ch=='\r'){
+	if(ch=='\r')
+	continue;
+        if(ch=='\n'){
         x=0;
         y++;
-        }else{
+	if(y>=LINE){
+	perror("Too much lines");
+	return -1;
+	}
+	continue;
+        }
+	printf("%d %c\n",ch,ch);
         txt->data[MAP_P(x,y)]=ch;
         txt->linesize[y]++;
         x++;
-        }
 }
 txt->linenum=y;
 return 0;
@@ -100,7 +107,7 @@ return 0;
 
 int texnsave(FILE *fp,texndata txt){
 int sum=0;
-for(int i=0;i<txt.linenum;i++){
+for(int i=0;i<=txt.linenum;i++){
 sum+=txt.linesize[i];
 for(int j=0;j<txt.linesize[i];j++)
 fprintf(fp,"%c",txt.data[MAP_P(j,i)]);
@@ -119,10 +126,11 @@ int height=ed->height;
 int Gy=GlobalY(ed);
 switch(direction){
 case'u':
-if(y>0)
+if(y>0&&GlobalY(ed)>0)
 y--;
 else if(ed->y_offset>0)
 ed->y_offset--;
+
 if(x>linelen(ed,GlobalY(ed)))
 	x=linelen(ed,GlobalY(ed));
 break;
@@ -158,6 +166,46 @@ break;
 }
 ed->x=x;
 ed->y=y;
+return;
+}
+
+void insert(texndata *txt,int x,int y,char ch){
+txt->linesize[y]++;
+int size=txt->linesize[y];
+int p=MAP_P(x,y);
+for (int i=MAP_P(size,y);i>p;i--)
+	txt->data[i]=txt->data[i-1];
+txt->data[p]=ch;
+return;
+}
+
+void insertline(texndata *txt,int y){
+if(y<txt->linenum)
+insertline(txt,y+1);
+else
+txt->linenum++;
+for(int i=0;i<txt->linesize[y];i++)
+txt->data[MAP_P(i,y+1)]=txt->data[MAP_P(i,y)];
+txt->linesize[y+1]=txt->linesize[y];
+for(int i=0;i<txt->linesize[y];i++)
+txt->data[MAP_P(i,y)]='\0';
+txt->linesize[y]=0;
+return;
+}
+
+void delline(texndata *txt,int y){
+int size=txt->linesize[y];
+for(int i=0;i<size;i++)
+txt->data[MAP_P(i,y)]='\0';
+txt->linesize[y]=0;
+if(y<txt->linenum){
+for(int i=0;i<txt->linesize[y+1];i++)
+txt->data[MAP_P(i,y)]=txt->data[MAP_P(i,y+1)];
+txt->linesize[y]=txt->linesize[y+1];
+delline(txt,y+1);
+}else{
+txt->linenum--;
+}
 return;
 }
 #endif

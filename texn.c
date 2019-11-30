@@ -3,6 +3,9 @@
 #include"lib/rawinput.h"
 #define VERSION "v0.2"
 #define DEBUG 0
+#define FLEXIBLE_FILE_EDIT 1
+#define DEFAULT_TXTROW 50
+#define DEFAULT_TXTLINE 4000
 
 const int S_width=50;
 const int S_height=30;
@@ -27,6 +30,12 @@ else
 	CGR_setChar(i,j,data);
 }
 return;
+}
+
+void normal_exit(){
+RawModeOff();
+CGR_end();
+exit(0);
 }
 
 void error_exit(int TXTline,int TXTrow,char *TXTmap,const char* str){
@@ -59,42 +68,44 @@ unsigned int TXTline=1;
 unsigned int TXTrow=1;
 char* TXTmap;
 if(argc==1){ //no file
-printf("NEW FILE");
-TXTline=100;
-TXTrow=2000;
-TXTmap=malloc(TXTrow*TXTline);
-for(int p=0;p<TXTrow*TXTline;p++)
-	TXTmap[p]='\0';
-
+	printf("NEW FILE");
+	TXTline=DEFAULT_TXTLINE;
+	TXTrow=DEFAULT_TXTROW;
+	TXTmap=malloc(TXTrow*TXTline);
+	for(int p=0;p<TXTrow*TXTline;p++)
+		TXTmap[p]='\0';
 }else if(argc==2){ //open file
-FILE *fp=fopen(argv[1],"r");
-if(!fp){
-printf("FILE ERROR");
-return -1;
-}
-char filechar;
-unsigned int linelen=0;
-char buffer[10000];
-int p=0;
-do{
-	filechar=getc(fp);
-	if(filechar==EOF)
-	break;
-
-	buffer[p++]=filechar;
-	if(filechar=='\n'){
-	TXTline=(TXTline>linelen)?TXTline:linelen;
-	linelen=0;
-	TXTrow++;
-	}else{
-	linelen++;
+	FILE *fp=fopen(argv[1],"r");
+	if(!fp){
+		printf("FILE ERROR");
+		return -1;
 	}
+	char filechar;
+	unsigned int linelen=0;
+	char buffer[10000];
+	int p=0;
+	do{
+		filechar=getc(fp);
+		if(filechar==EOF)
+			break;
 
-}while(filechar!=EOF);
+		buffer[p++]=filechar;
+		if(filechar=='\n'){
+			TXTline=(TXTline>linelen)?TXTline:linelen;
+			linelen=0;
+			TXTrow++;
+		}else{
+			linelen++;
+		}
+	}while(filechar!=EOF);
 fclose(fp);
 
 if(DEBUG)printf("%d %d %s",TXTline,TXTrow,buffer);
-TXTmap=malloc(TXTrow*TXTline);
+if(FLEXIBLE_FILE_EDIT){
+	TXTmap=malloc(DEFAULT_TXTROW*DEFAULT_TXTLINE);
+}else{
+	TXTmap=malloc(TXTrow*TXTline);
+}
 for(int p=0;p<TXTrow*TXTline;p++)
 	TXTmap[p]='\0';
 p=0;
@@ -137,7 +148,7 @@ printf("SAVED");
 }
 
 if(input==24)//exit ctrl+x
-	break;
+	normal_exit();
 
 if(input==27){//Control
 input=rawinput();
