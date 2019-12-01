@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include"lib/CGR.h"
 #include"lib/rawinput.h"
-#define VERSION "v0.2"
+#define VERSION "v0.22"
 #define DEBUG 0
 #define FLEXIBLE_FILE_EDIT 1
 #define DEFAULT_TXTROW 8000
