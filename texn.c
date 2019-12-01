@@ -4,8 +4,8 @@
 #define VERSION "v0.2"
 #define DEBUG 0
 #define FLEXIBLE_FILE_EDIT 1
-#define DEFAULT_TXTROW 50
-#define DEFAULT_TXTLINE 4000
+#define DEFAULT_TXTROW 8000
+#define DEFAULT_TXTCOLUMN 100
 
 const int S_width=50;
 const int S_height=30;
@@ -59,22 +59,54 @@ exit(-1);
 return;
 }
 
+void openfile(char* filename,unsigned int TXTline,unsigned int TXTrow,char *TXTmap){
+FILE *fp=fopen(filename,"r");
+if(!fp){
+printf("FILE ERROR");
+exit(-1);
+}
+char buf;
+int x=0;
+int y=0;
+while(1){
+	buf=getc(fp);
+
+	if(buf==EOF) break;
+
+	TXTmap[x+y*TXTline]=buf;
+
+	if(buf=='\n'){
+		x=0;
+		y++;
+	}else{
+		x++;
+	}
+}
+fclose(fp);
+return;
+}
 
 int main(int argc,char** argv){
 printf("Texn %s\n",VERSION);
 CGR_init(S_width,S_height);
 CGR_draw();
-unsigned int TXTline=1;
-unsigned int TXTrow=1;
+unsigned int TXTline=DEFAULT_TXTCOLUMN;
+unsigned int TXTrow=DEFAULT_TXTROW;
 char* TXTmap;
 if(argc==1){ //no file
 	printf("NEW FILE");
-	TXTline=DEFAULT_TXTLINE;
-	TXTrow=DEFAULT_TXTROW;
 	TXTmap=malloc(TXTrow*TXTline);
 	for(int p=0;p<TXTrow*TXTline;p++)
 		TXTmap[p]='\0';
 }else if(argc==2){ //open file
+	//new fileopen start
+	TXTmap=malloc(TXTrow*TXTline);
+	openfile(argv[1],TXTline,TXTrow,TXTmap);
+	update(TXTline,TXTrow,TXTmap,vx,vy);
+	CGR_setChar(cx-vx,cy-vy,c);
+	CGR_draw();
+	//new fileopen end
+/*//old fileopen start
 	FILE *fp=fopen(argv[1],"r");
 	if(!fp){
 		printf("FILE ERROR");
@@ -101,11 +133,7 @@ if(argc==1){ //no file
 fclose(fp);
 
 if(DEBUG)printf("%d %d %s",TXTline,TXTrow,buffer);
-if(FLEXIBLE_FILE_EDIT){
-	TXTmap=malloc(DEFAULT_TXTROW*DEFAULT_TXTLINE);
-}else{
-	TXTmap=malloc(TXTrow*TXTline);
-}
+TXTmap=malloc(TXTrow*TXTline);
 for(int p=0;p<TXTrow*TXTline;p++)
 	TXTmap[p]='\0';
 p=0;
@@ -123,13 +151,13 @@ p++;
 }
 update(TXTline,TXTrow,TXTmap,vx,vy);
 CGR_setChar(cx-vx,cy-vy,c);
-CGR_draw();
+CGR_draw();*/
+//old fileopen end
 }
 
 char input=' ';
 
-
-while(1){
+while(1){//main loop
 input=rawinput();
 if(input==19){//save file
 FILE* fp=fopen("test.txt","w");
