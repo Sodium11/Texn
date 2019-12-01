@@ -103,10 +103,10 @@ if(argc==1){ //no file
 	TXTmap=malloc(TXTrow*TXTline);
 	openfile(argv[1],TXTline,TXTrow,TXTmap);
 	update(TXTline,TXTrow,TXTmap,vx,vy);
-	CGR_setChar(cx-vx,cy-vy,c);
-	CGR_draw();
 	//new fileopen end
 }
+CGR_setChar(cx-vx,cy-vy,c);
+CGR_draw();
 
 char input=' ';
 
@@ -185,6 +185,9 @@ case 68://left
 	}
 	}
 	break;
+case 80://view help F1
+	printf("%s",VERSION);
+break;
 }
 }else if(input>=0x20&&input<=0x7E){//normal input
 	int tmp=cx;
