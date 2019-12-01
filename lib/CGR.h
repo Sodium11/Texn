@@ -49,18 +49,18 @@ CGR_reset();
 char CGR_getChar(int x,int y){
 if(x<0||y<0||x>=CGR_width||y>=CGR_height){
 perror("invalid position");
-exit(0);
+return -1;
 }
 return CGRScreen[x+y*CGR_width];
 }
 
-void CGR_setChar(int x,int y,char character){
+int CGR_setChar(int x,int y,char character){
 if(x<0||y<0||x>=CGR_width||y>=CGR_height){
 perror("invalid position");
-exit(0);
+return -1;
 }
 CGRScreen[x+y*CGR_width]=character;
-return;
+return 0;
 }
 
 void CGR_draw(){

@@ -57,15 +57,14 @@ fclose(backup);
 printf("Data saved in backup.txt");
 RawModeOff();
 CGR_end();
-exit(-1);
-return;
+exit(1);
 }
 
 void openfile(char* filename,unsigned int TXTline,unsigned int TXTrow,char *TXTmap){
 FILE *fp=fopen(filename,"r");
 if(!fp){
 printf("FILE ERROR");
-exit(-1);
+exit(1);
 }
 char buf;
 int x=0;
@@ -212,6 +211,7 @@ break;
 	if(input==0xA){//Enter
 		TXTmap[cx+cy*TXTline]='\n';
 		cx=0;
+		vx=0;
 		if(cy<TXTrow-1)
 		cy++;
 		else
