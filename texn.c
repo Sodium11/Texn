@@ -106,53 +106,6 @@ if(argc==1){ //no file
 	CGR_setChar(cx-vx,cy-vy,c);
 	CGR_draw();
 	//new fileopen end
-/*//old fileopen start
-	FILE *fp=fopen(argv[1],"r");
-	if(!fp){
-		printf("FILE ERROR");
-		return -1;
-	}
-	char filechar;
-	unsigned int linelen=0;
-	char buffer[10000];
-	int p=0;
-	do{
-		filechar=getc(fp);
-		if(filechar==EOF)
-			break;
-
-		buffer[p++]=filechar;
-		if(filechar=='\n'){
-			TXTline=(TXTline>linelen)?TXTline:linelen;
-			linelen=0;
-			TXTrow++;
-		}else{
-			linelen++;
-		}
-	}while(filechar!=EOF);
-fclose(fp);
-
-if(DEBUG)printf("%d %d %s",TXTline,TXTrow,buffer);
-TXTmap=malloc(TXTrow*TXTline);
-for(int p=0;p<TXTrow*TXTline;p++)
-	TXTmap[p]='\0';
-p=0;
-int x=0;
-int y=0;
-while(buffer[p]!='\0'){
-TXTmap[x+y*TXTline]=buffer[p];
-if(buffer[p]=='\n'){
-x=0;
-y++;
-}else{
-x++;
-}
-p++;
-}
-update(TXTline,TXTrow,TXTmap,vx,vy);
-CGR_setChar(cx-vx,cy-vy,c);
-CGR_draw();*/
-//old fileopen end
 }
 
 char input=' ';
