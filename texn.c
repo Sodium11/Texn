@@ -55,6 +55,8 @@ else
 fclose(backup);
 }
 printf("Data saved in backup.txt");
+RawModeOff();
+CGR_end();
 exit(-1);
 return;
 }
@@ -109,7 +111,7 @@ CGR_setChar(cx-vx,cy-vy,c);
 CGR_draw();
 
 char input=' ';
-
+RawModeOn();
 while(1){//main loop
 input=rawinput();
 if(input==19){//save file

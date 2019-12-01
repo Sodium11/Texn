@@ -25,8 +25,10 @@ return;
 }
 
 char rawinput(){
-if(raw_mode==0)
-RawModeOn();
+if(raw_mode==0){
+perror("raw_mode is off!");
+return -1;
+}
 char ch=-1;
 scanf("%c",&ch);
 return ch;
