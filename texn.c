@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include"lib/CGR.h"
 #include"lib/rawinput.h"
-#define VERSION "v0.22"
+#define VERSION "v0.23"
 #define DEBUG 0
 #define FLEXIBLE_FILE_EDIT 1
 #define DEFAULT_TXTROW 8000
@@ -146,6 +146,10 @@ vy--;
 break;
 
 case 66://down
+if(TXTmap[cx+(cy+1)*TXTline]=='\0'){
+printf("NULL LETTER");
+break;
+}
 if(cy<TXTrow-1){
 if(cy-vy<S_height-1){
 cy++;
@@ -209,12 +213,18 @@ break;
 }else{
 	if(DEBUG)printf("function:%d",input);
 	if(input==0xA){//Enter
-		TXTmap[cx+cy*TXTline]='\n';
-		cx=0;
-		vx=0;
-		if(cy<TXTrow-1)
-		cy++;
-		else
+		if(cy<TXTrow-1){//row down shift
+			cy++;
+			for(int y=TXTrow-1;y>vy+cy;y--)
+				for(int x=0;x<TXTline;x++)
+					TXTmap[x+y*TXTline]=TXTmap[x+(y-1)*TXTline];
+			for(int x=cx;x<TXTline;x++){
+				TXTmap[(x-cx)+(vy+cy)*TXTline]=TXTmap[x+(vy+cy-1)*TXTline];
+				TXTmap[x+(vy+cy-1)*TXTline]='\0';
+			}
+			TXTmap[cx+(cy-1)*TXTline]='\n';
+			cx=0;
+		}else
 		printf("HEIGHT OVER");
 		if(cy>=vy+S_height)vy++;
 
