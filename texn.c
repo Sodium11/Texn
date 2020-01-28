@@ -6,6 +6,11 @@
 #define FLEXIBLE_FILE_EDIT 1
 #define DEFAULT_TXTROW 8000
 #define DEFAULT_TXTCOLUMN 100
+#define KEY_UP 65
+#define KEY_DOWN 66
+#define KEY_RIGHT 67
+#define KEY_LEFT 68
+
 
 const int S_width=50;
 const int S_height=30;
@@ -17,7 +22,7 @@ int c='|';
 int vx=0;
 int vy=0;
 
-void update(int TXTline,int TXTrow,char *TXTmap,int x,int y){
+void draw(int TXTline,int TXTrow,char *TXTmap,int x,int y){
 int w=CGR_getWidth();
 int h=CGR_getHeight();
 for(int i=0;i<w;i++)
@@ -60,11 +65,11 @@ CGR_end();
 exit(1);
 }
 
-void openfile(char* filename,unsigned int TXTline,unsigned int TXTrow,char *TXTmap){
+int openfile(char* filename,unsigned int TXTline,unsigned int TXTrow,char *TXTmap){
 FILE *fp=fopen(filename,"r");
 if(!fp){
 printf("FILE ERROR");
-exit(1);
+return -1;
 }
 char buf;
 int x=0;
@@ -84,7 +89,30 @@ while(1){
 	}
 }
 fclose(fp);
-return;
+return 0;
+}
+
+int savefile(char* filename,unsigned int TXTline,unsigned int TXTrow,char *TXTmap){
+FILE *fp=fopen(filename,"r");
+if(fp){
+fclose(fp);
+printf("Overwrite on %s?(y/n)",filename);
+char answer=rawinput();
+if(answer!='y')return -1;
+}
+fp=fopen(filename,"w");
+int p=0;
+while(p<TXTrow*TXTline){
+if(TXTmap[p]=='\0')
+        break;
+fprintf(fp,"%c",TXTmap[p]);
+if(TXTmap[p]=='\n')
+        p=((p/TXTline)+1)*TXTline;
+else
+        p++;
+}
+fclose(fp);
+return 0;
 }
 
 int main(int argc,char** argv){
@@ -94,6 +122,7 @@ CGR_draw();
 unsigned int TXTline=DEFAULT_TXTCOLUMN;
 unsigned int TXTrow=DEFAULT_TXTROW;
 char* TXTmap;
+char* txtfilename="test.txt";
 if(argc==1){ //no file
 	printf("NEW FILE");
 	TXTmap=malloc(TXTrow*TXTline);
@@ -103,7 +132,8 @@ if(argc==1){ //no file
 	//new fileopen start
 	TXTmap=malloc(TXTrow*TXTline);
 	openfile(argv[1],TXTline,TXTrow,TXTmap);
-	update(TXTline,TXTrow,TXTmap,vx,vy);
+	txtfilename=argv[1];
+	draw(TXTline,TXTrow,TXTmap,vx,vy);
 	//new fileopen end
 }
 CGR_setChar(cx-vx,cy-vy,c);
@@ -114,19 +144,10 @@ RawModeOn();
 while(1){//main loop
 input=rawinput();
 if(input==19){//save file
-FILE* fp=fopen("test.txt","w");
-int p=0;
-while(p<TXTrow*TXTline){
-if(TXTmap[p]=='\0')
-	break;
-fprintf(fp,"%c",TXTmap[p]);
-if(TXTmap[p]=='\n')
-	p=((p/TXTline)+1)*TXTline;
-else
-	p++;
-}
-fclose(fp);
+if(savefile(txtfilename,TXTline,TXTrow,TXTmap)==0)
 printf("SAVED");
+else
+printf("UNsaved");
 }
 
 if(input==24)//exit ctrl+x
@@ -137,7 +158,21 @@ input=rawinput();
 input=rawinput();
 if(DEBUG)printf("Control:%d",input);
 switch(input){
-case 65://up
+
+case KEY_UP://up
+if(TXTmap[cx+(cy-1)*TXTline]=='\0'){
+int found=0;
+for(int i=cx-1;i>=0;i--){
+        if(TXTmap[i+(cy-1)*TXTline]!='\0'){
+        cx=i;
+        cy--;
+        found=1;
+        break;
+        }
+}
+if(found==0)printf("NULL LETTER");
+break;
+}
 if(cy>0){
 cy--;
 if(cy<vy)
@@ -145,9 +180,18 @@ vy--;
 }
 break;
 
-case 66://down
+case KEY_DOWN://down
 if(TXTmap[cx+(cy+1)*TXTline]=='\0'){
-printf("NULL LETTER");
+int found=0;
+for(int i=cx-1;i>=0;i--){
+	if(TXTmap[i+(cy+1)*TXTline]!='\0'){
+	cx=i;
+	cy++;
+	found=1;
+	break;
+	}
+}
+if(found==0)printf("NULL LETTER");
 break;
 }
 if(cy<TXTrow-1){
@@ -163,7 +207,7 @@ printf("HEIGHT OVER");
 }
 break;
 
-case 67://right
+case KEY_RIGHT://right
 	if (TXTmap[cx+cy*TXTline]=='\n'){
 		cx=0;
 		cy++;
@@ -174,7 +218,7 @@ case 67://right
 	}
 break;
 
-case 68://left
+case KEY_LEFT://left
 	if(cx>0){
 	cx--;
 	if(cx<vx)vx--;
@@ -242,7 +286,7 @@ break;
 		}
 	}
 }
-update(TXTline,TXTrow,TXTmap,vx,vy);
+draw(TXTline,TXTrow,TXTmap,vx,vy);
 CGR_setChar(cx-vx,cy-vy,c);
 CGR_draw();
 }

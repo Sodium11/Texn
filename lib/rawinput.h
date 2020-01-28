@@ -3,7 +3,7 @@
 #include<stdio.h>
 #include<termios.h>
 
-static struct termios	terminal_backup;
+static struct termios terminal_backup;
 int raw_mode=0;
 
 void RawModeOff(){
