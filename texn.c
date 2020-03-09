@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include"lib/CGR.h"
 #include"lib/rawinput.h"
-#define VERSION "v0.23"
+#define VERSION "v0.24"
 #define DEBUG 0
 #define FLEXIBLE_FILE_EDIT 1
 #define DEFAULT_TXTROW 8000
@@ -96,7 +96,7 @@ int savefile(char* filename,unsigned int TXTline,unsigned int TXTrow,char *TXTma
 FILE *fp=fopen(filename,"r");
 if(fp){
 fclose(fp);
-printf("Overwrite on %s?(y/n)",filename);
+printf("Overwrite on %s?(y/n)\n",filename);
 char answer=rawinput();
 if(answer!='y')return -1;
 }
@@ -145,9 +145,9 @@ while(1){//main loop
 input=rawinput();
 if(input==19){//save file
 if(savefile(txtfilename,TXTline,TXTrow,TXTmap)==0)
-printf("SAVED");
+printf("SAVED\n");
 else
-printf("UNsaved");
+printf("NOTsaved\n");
 }
 
 if(input==24)//exit ctrl+x
@@ -283,6 +283,11 @@ break;
 			cy--;
 			if(cy<vy)vy--;
 			while(TXTmap[cx+cy*TXTline]!='\n')cx++;
+                        for(int x=0;x<TXTline;x++)
+                                TXTmap[(x+cx)+(vy+cy)*TXTline]=TXTmap[x+(vy+cy+1)*TXTline];
+                        for(int y=vy+cy+1;y<TXTrow-1;y++)
+                                for(int x=0;x<TXTline;x++)
+                                        TXTmap[x+y*TXTline]=TXTmap[x+(y+1)*TXTline];
 		}
 	}
 }
