@@ -1,11 +1,11 @@
 #include<stdio.h>
 #include"lib/CGR.h"
 #include"lib/rawinput.h"
-#define VERSION "v0.25"
+#define VERSION "v0.24"
 #define DEBUG 0
 #define FLEXIBLE_FILE_EDIT 1
 #define DEFAULT_TXTROW 8000
-#define DEFAULT_TXTCOLUMN 255
+#define DEFAULT_TXTCOLUMN 100
 #define KEY_UP 65
 #define KEY_DOWN 66
 #define KEY_RIGHT 67
@@ -212,7 +212,6 @@ break;
 case KEY_RIGHT://right
 	if (TXTmap[cx+cy*TXTline]=='\n'){
 		cx=0;
-		vx=0;
 		cy++;
 		if(cy>=vy+S_height)
 		vy++;
@@ -233,9 +232,8 @@ case KEY_LEFT://left
 		if(cy<vy)vy--;
 		while(TXTmap[cx+cy*TXTline]!='\n'){
 		cx++;
-		//if(cx>=vx+S_width-1)error_exit(TXTline,TXTrow,TXTmap,"over");
+		if(cx>=vx+S_width-1)error_exit(TXTline,TXTrow,TXTmap,"over");
 		}
-		if(cx>vx+S_width-1)vx=cx-S_width/2;
 	}
 	}
 	break;
