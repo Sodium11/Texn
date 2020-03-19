@@ -214,7 +214,8 @@ case KEY_RIGHT://right
 		if(cy>=vy+S_height)
 		vy++;
 	}else{
-	if(cx<S_width-1)cx++;
+	cx++;
+	vx++;
 	}
 break;
 
